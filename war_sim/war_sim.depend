@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1763919686 source:e:\ucb-2\programacion 1\juego_warhammer40k\war_sim\main.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	<algorithm>
+	<cstdio>
+
