@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1765309571 source:e:\create an opportunity\war_sim\war_simbeta\main.cpp
+1765566982 source:e:\create an opportunity\war_sim\war_simbeta\main.cpp
 	<iostream>
 	<fstream>
 	<string>
@@ -11,4 +11,8 @@
 	<cctype>
 	<unordered_map>
 	<cmath>
+	<queue>
+	<climits>
+	<random>
+	<climits>
 

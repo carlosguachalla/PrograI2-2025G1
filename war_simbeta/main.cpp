@@ -66,6 +66,7 @@ struct UnidadInst {
     int hp;
     int hpMax;
     int movimiento;
+    int salvacion;
 };
 bool cargarUsuarios(vector<Usuario>& usuarios);
 void guardarUsuarios(const vector<Usuario>& usuarios);
@@ -254,7 +255,7 @@ void mostrarArmas(const vector<Arma>& armas) {
              << " | Disparos: " << a.disparos
              << " | Impacto(0=directo): " << a.impacto
              << " | Penetracion: " << a.penetracion
-             << " | Daño: " << a.dano
+             << " | Dao: " << a.dano
              << " | Fuerza: " << a.fuerza
              << "\n";
     }
@@ -267,7 +268,7 @@ void mostrarArmasCuerpo(const vector<ArmaCuerpo>& armasC) {
              << " | Nombre: " << a.nombre
              << " | Impacto(0=directo): " << a.impacto
              << " | Penetracion: " << a.penetracion
-             << " | Daño: " << a.dano
+             << " | Dao: " << a.dano
              << " | Fuerza: " << a.fuerza
              << " | Golpes: " << a.golpes
              << "\n";
@@ -509,6 +510,7 @@ vector<UnidadInst> generarInstanciasDesdeEjercito(const vector<int>& ejercito, c
         ui.desplegada = false;
         ui.fila = -1; ui.col = -1;
         ui.movimiento = ub->movimiento;
+        ui.salvacion = ub->salvacion;
         ui.tropasMax = ub->numTropas;
         ui.tropasActuales = ub->numTropas;
         ui.hp = 0; ui.hpMax = 0;
@@ -582,7 +584,7 @@ void modoDespliegue(vector<vector<string>>& map, vector<UnidadInst>& instancias)
         for (const auto& u : instancias) {
             cout << u.codigo << " - " << u.nombre << " - " << (u.desplegada ? "DESPLEGADA" : "POR DESPLEGAR");
             if (u.desplegada) cout << " Pos: (" << u.fila << "," << u.col << ")";
-            cout << " Tamaño: " << u.sizeH << "x" << u.sizeW;
+            cout << " Tamao: " << u.sizeH << "x" << u.sizeW;
             if (u.tropasMax > 1) cout << " Tropas: " << u.tropasActuales << "/" << u.tropasMax;
             else if (u.hpMax > 0) cout << " HP: " << u.hp << "/" << u.hpMax;
             cout << "\n";
@@ -613,7 +615,7 @@ void modoDespliegue(vector<vector<string>>& map, vector<UnidadInst>& instancias)
             for (int r = 0; r < instancias[idx].sizeH && ok; ++r)
                 for (int c = 0; c < instancias[idx].sizeW; ++c)
                     if (map[fila + r][col + c] != ".") { ok = false; break; }
-            if (!ok) { cout << "Hay un obstáculo o unidad en la posición indicadas. Intenta otra.\n"; continue; }
+            if (!ok) { cout << "Hay un obstculo o unidad en la posicin indicadas. Intenta otra.\n"; continue; }
             instancias[idx].fila = fila;
             instancias[idx].col = col;
             instancias[idx].desplegada = true;
@@ -667,12 +669,12 @@ void modoMovimiento(vector<vector<string>>& map, vector<UnidadInst>& instancias)
                 cout << "No puedes mover unidades de la IA manualmente.\n";
                 continue;
             }
-            if (!instancias[idx].desplegada) { cout << "Unidad no está desplegada.\n"; continue; }
+            if (!instancias[idx].desplegada) { cout << "Unidad no est desplegada.\n"; continue; }
             cout << "Destino fila: "; cin >> fd;
             cout << "Destino col: "; cin >> cd;
 
             if (!dentroMapa(fd, cd, instancias[idx].sizeH, instancias[idx].sizeW)) {
-                cout << "Destino fuera del mapa o la unidad no cabe allí.\n"; continue;
+                cout << "Destino fuera del mapa o la unidad no cabe all.\n"; continue;
             }
             int dist = abs(instancias[idx].fila - fd) + abs(instancias[idx].col - cd);
             if (dist > instancias[idx].movimiento) {
@@ -700,82 +702,7 @@ void modoMovimiento(vector<vector<string>>& map, vector<UnidadInst>& instancias)
         else cout << "Opcion invalida.\n";
     }
 }
-void modoBatalla(vector<vector<string>>& mapa, vector<UnidadInst>& instancias) {
-    cout << "=== MODO BATALLA ===\n";
 
-    int turno = 0;
-
-    while (true) {
-
-        mostrarMapa(mapa);
-
-        mostrarPanelEstado(instancias);
-
-        cout << "\nComandos de BATALLA (Turno " << (turno == 0 ? "JUGADOR" : "IA") << "):\n";
-        if (turno == 0) {
-            cout << "1) Entrar a Modo Despliegue (colocar unidades) [Jugador]\n";
-            cout << "2) Entrar a Modo Movimiento (mover unidades desplegadas) [Jugador]\n";
-            cout << "3) Mostrar mapa (solo)\n";
-            cout << "4) Mostrar panel estado (solo)\n";
-            cout << "5) Salir de BATALLA\n";
-            cout << "6) Terminar Turno (pasar a IA)\n";
-        } else {
-
-            cout << "1) (turno IA) - no disponible\n";
-            cout << "2) (turno IA) - no disponible\n";
-            cout << "3) Mostrar mapa (solo)\n";
-            cout << "4) Mostrar panel estado (solo)\n";
-            cout << "5) Salir de BATALLA\n";
-            cout << "6) (turno IA) - Ejecutar movimiento IA ahora\n";
-        }
-
-        cout << "Elige: ";
-        int op; cin >> op;
-
-        if (turno == 0) {
-            if (op == 1) {
-                modoDespliegue(mapa, instancias);
-            } else if (op == 2) {
-                modoMovimiento(mapa, instancias);
-            } else if (op == 3) {
-                mostrarMapa(mapa);
-            } else if (op == 4) {
-                mostrarPanelEstado(instancias);
-            } else if (op == 5) {
-                cout << "Saliendo de BATALLA.\n";
-                break;
-            } else if (op == 6) {
-
-                cout << "Turno del jugador finalizado. Ahora mueve la IA...\n";
-
-                extern void moverIA(vector<vector<string>>&, vector<UnidadInst>&);
-                moverIA(mapa, instancias);
-                cout << "IA ha movido sus unidades.\n";
-
-                turno = 0;
-            } else {
-                cout << "Opcion invalida.\n";
-            }
-        } else {
-            if (op == 3) {
-                mostrarMapa(mapa);
-            } else if (op == 4) {
-                mostrarPanelEstado(instancias);
-            } else if (op == 5) {
-                cout << "Saliendo de BATALLA.\n";
-                break;
-            } else if (op == 6) {
-                cout << "Ejecutando movimiento de la IA...\n";
-                extern void moverIA(vector<vector<string>>&, vector<UnidadInst>&);
-                moverIA(mapa, instancias);
-                cout << "IA ha movido. Ahora es el turno del jugador.\n";
-                turno = 0;
-            } else {
-                cout << "Opcion invalida o no disponible en turno IA.\n";
-            }
-        }
-    }
-}
 int sumaArmasEnCadena(const string& armasCadena) {
     if (armasCadena.empty() || armasCadena == "-") return 0;
     int total = 0;
@@ -795,7 +722,7 @@ int sumaArmasEnCadena(const string& armasCadena) {
 
 string asignarArmasAUnidad(const vector<Arma>& armasDisponibles, int numTropas) {
     if (armasDisponibles.empty()) {
-        cout << "No hay armas a distancia cargadas en el sistema. Se asignará '-' (ninguna).\n";
+        cout << "No hay armas a distancia cargadas en el sistema. Se asignar '-' (ninguna).\n";
         return string("-");
     }
     mostrarArmasSimple(armasDisponibles);
@@ -855,7 +782,7 @@ string asignarArmasAUnidad(const vector<Arma>& armasDisponibles, int numTropas) 
 
 string asignarArmasCuerpoAUnidad(const vector<ArmaCuerpo>& armasDisponibles, int numTropas) {
     if (armasDisponibles.empty()) {
-        cout << "No hay armas cuerpo a cuerpo cargadas en el sistema. Se asignará '-' (ninguna).\n";
+        cout << "No hay armas cuerpo a cuerpo cargadas en el sistema. Se asignar '-' (ninguna).\n";
         return string("-");
     }
     mostrarArmasCuerpoSimple(armasDisponibles);
@@ -923,7 +850,7 @@ void agregarArma(vector<Arma>& armas) {
     cout << "Cantidad de disparos (numero o D6): "; cin >> a.disparos;
     cout << "Impacto necesario (0 si impacto directo): "; cin >> a.impacto;
     cout << "Penetracion: "; cin >> a.penetracion;
-    cout << "Daño por disparo (numero o D6): "; cin >> a.dano;
+    cout << "Dao por disparo (numero o D6): "; cin >> a.dano;
     cout << "Fuerza (opcional, 0 por defecto): "; cin >> a.fuerza;
 
     armas.push_back(a);
@@ -941,7 +868,7 @@ void editarArma(vector<Arma>& armas) {
             cout << "Nueva cantidad de disparos: "; cin >> a.disparos;
             cout << "Nuevo impacto (0 si directo): "; cin >> a.impacto;
             cout << "Nueva penetracion: "; cin >> a.penetracion;
-            cout << "Nuevo daño: "; cin >> a.dano;
+            cout << "Nuevo dao: "; cin >> a.dano;
             cout << "Nueva fuerza: "; cin >> a.fuerza;
             guardarArmas(armas);
             cout << "Arma actualizada.\n";
@@ -973,7 +900,7 @@ void agregarArmaCuerpo(vector<ArmaCuerpo>& armasC) {
     cout << "Nombre del arma (sin espacios): "; cin >> a.nombre;
     cout << "Impacto necesario (0 si impacto directo): "; cin >> a.impacto;
     cout << "Penetracion: "; cin >> a.penetracion;
-    cout << "Daño por ataque (numero o D6): "; cin >> a.dano;
+    cout << "Dao por ataque (numero o D6): "; cin >> a.dano;
     cout << "Fuerza (opcional, 0 por defecto): "; cin >> a.fuerza;
     cout << "Golpes por asalto (opcional, 1 por defecto): "; cin >> a.golpes;
 
@@ -990,7 +917,7 @@ void editarArmaCuerpo(vector<ArmaCuerpo>& armasC) {
             cout << "Nuevo nombre (sin espacios): "; cin >> a.nombre;
             cout << "Nuevo impacto (0 si directo): "; cin >> a.impacto;
             cout << "Nueva penetracion: "; cin >> a.penetracion;
-            cout << "Nuevo daño: "; cin >> a.dano;
+            cout << "Nuevo dao: "; cin >> a.dano;
             cout << "Nueva fuerza: "; cin >> a.fuerza;
             cout << "Nuevos golpes por asalto: "; cin >> a.golpes;
             guardarArmasCuerpo(armasC);
@@ -1061,14 +988,14 @@ void editarUnidad(vector<Unidad>& catalogo, const vector<Arma>& armasDisponibles
             cout << "Nuevo impacto: "; cin >> u.impacto;
 
             cout << "Asignacion de armas a distancia actual: " << (u.armas.empty() ? "-" : u.armas) << "\n";
-            cout << "¿Deseas re-asignar armas a distancia? 1=Si 0=No: ";
+            cout << "Deseas re-asignar armas a distancia? 1=Si 0=No: ";
             int ra; cin >> ra;
             if (ra == 1) {
                 u.armas = asignarArmasAUnidad(armasDisponibles, u.numTropas);
             }
 
             cout << "Asignacion de armas cuerpo a cuerpo actual: " << (u.armasCuerpo.empty() ? "-" : u.armasCuerpo) << "\n";
-            cout << "¿Deseas re-asignar armas cuerpo a cuerpo? 1=Si 0=No: ";
+            cout << "Deseas re-asignar armas cuerpo a cuerpo? 1=Si 0=No: ";
             int rab; cin >> rab;
             if (rab == 1) {
                 u.armasCuerpo = asignarArmasCuerpoAUnidad(armasCDisponibles, u.numTropas);
@@ -1413,6 +1340,462 @@ void moverIA(vector<vector<string>>& mapa, vector<UnidadInst>& instancias) {
 }
 
 
+
+void eliminarUnidadSiMuerta(vector<vector<string>>& mapa, vector<UnidadInst>& instancias, int idx) {
+    if (instancias[idx].tropasActuales <= 0 && instancias[idx].hp <= 0) {
+        cout << ">>> La unidad " << instancias[idx].codigo << " ha muerto y es eliminada del campo.\n";
+        quitarUnidadDelMapa(mapa, instancias[idx]);
+        instancias.erase(instancias.begin() + idx);
+    }
+}
+#include <random>
+#include <climits>
+
+int tiradaD6(std::mt19937 &rng) {
+    std::uniform_int_distribution<int> d(1,6);
+    return d(rng);
+}
+std::vector<std::pair<int,int>> parseArmasCadenaToVec(const std::string &s) {
+    std::vector<std::pair<int,int>> out;
+    if (s.empty() || s == "-") return out;
+    std::stringstream ss(s);
+    std::string tok;
+    while (std::getline(ss, tok, ',')) {
+        if (tok.empty()) continue;
+        size_t p = tok.find(':');
+        if (p == std::string::npos) continue;
+        int id = 0, cnt = 0;
+        try { id = std::stoi(tok.substr(0,p)); } catch(...) { continue; }
+        try { cnt = std::stoi(tok.substr(p+1)); } catch(...) { cnt = 0; }
+        out.emplace_back(id, cnt);
+    }
+    return out;
+}
+const Arma* armaPorId(const std::vector<Arma>& armas, int id) {
+    for (const auto &a: armas) if (a.id == id) return &a;
+    return nullptr;
+}
+const ArmaCuerpo* armaCuerpoPorId(const std::vector<ArmaCuerpo>& armasC, int id) {
+    for (const auto &a: armasC) if (a.id == id) return &a;
+    return nullptr;
+}
+int calcularDisparosPorArma(const Arma &a, int numTropas, std::mt19937 &rng) {
+    if (a.disparos.empty() || a.disparos == "-") return 0;
+    if (a.disparos.size() >= 2 && (a.disparos[0]=='D' || a.disparos[0]=='d')) {
+        int n = 6;
+        try { n = std::stoi(a.disparos.substr(1)); } catch(...) { n = 6; }
+        int total = 0;
+        for (int i=0;i<numTropas;i++) {
+            std::uniform_int_distribution<int> d(1,n);
+            total += d(rng);
+        }
+        return total;
+    }
+    try {
+        int per = std::stoi(a.disparos);
+        return per * numTropas;
+    } catch(...) {
+        return 0;
+    }
+}
+bool lineaDespejada(const std::vector<std::vector<std::string>>& mapa, int r1, int c1, int r2, int c2) {
+    int x0 = c1, y0 = r1, x1 = c2, y1 = r2;
+    int dx = abs(x1-x0), sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1-y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+    int x = x0, y = y0;
+    while (!(x == x1 && y == y1)) {
+        int e2 = 2*err;
+        if (e2 >= dy) { err += dy; x += sx; }
+        if (e2 <= dx) { err += dx; y += sy; }
+        if (x == x1 && y == y1) break;
+        if (y >=0 && y < (int)mapa.size() && x >=0 && x < (int)mapa[0].size()) {
+            if (mapa[y][x] == "#") return false;
+        }
+    }
+    return true;
+}
+int umbralParaHervir(int fuerza, int resistencia) {
+    if (fuerza >= 2*resistencia) return 2;
+    if (fuerza > resistencia) return 3;
+    if (fuerza == resistencia) return 4;
+    if (fuerza < resistencia && fuerza*2 > resistencia) return 5;
+    return 6;
+}
+void aplicarDanioAUnidad(UnidadInst &target, int danio) {
+    if (danio <= 0) return;
+    if (target.hpMax > 0) {
+        target.hp -= danio;
+        if (target.hp < 0) target.hp = 0;
+        if (target.hp == 0 && target.tropasActuales > 0) {
+            target.tropasActuales = 0;
+        }
+    } else {
+        target.tropasActuales -= danio;
+        if (target.tropasActuales < 0) target.tropasActuales = 0;
+    }
+}
+void ejecutarDisparosDeUnidad(
+    std::vector<std::vector<std::string>>& mapa,
+    UnidadInst &shooter,
+    UnidadInst &target,
+    const std::vector<Unidad>& catalogo,
+    const std::vector<Arma>& armasDisponibles,
+    std::mt19937 &rng
+) {
+    if (!shooter.desplegada || !target.desplegada) return;
+    if (shooter.tropasActuales <= 0) return;
+
+    int numTropas = shooter.tropasActuales;
+    int resistencia = 1;
+    for (const auto &u_cat : catalogo) {
+        if (u_cat.id == target.idBase) { resistencia = u_cat.impacto; break; }
+    }
+    std::string armasCadena = "-";
+    for (const auto &u_cat : catalogo) {
+        if (u_cat.id == shooter.idBase) { armasCadena = u_cat.armas; break; }
+    }
+    auto armasVec = parseArmasCadenaToVec(armasCadena);
+    if (armasVec.empty()) return;
+
+    for (auto &p : armasVec) {
+        int armaId = p.first;
+        int asignadas = p.second;
+        const Arma* a = armaPorId(armasDisponibles, armaId);
+        if (!a) continue;
+
+        int modelos = (asignadas>0? asignadas : numTropas);
+        int tiros = calcularDisparosPorArma(*a, modelos, rng);
+        if (tiros <= 0) continue;
+        int rangoEnt = 0;
+        {
+            std::string r = a->rango;
+            std::string dig;
+            for (char ch: r) if (std::isdigit((unsigned char)ch)) dig.push_back(ch);
+            if (!dig.empty()) try { rangoEnt = std::stoi(dig); } catch(...) { rangoEnt = 0; }
+        }
+        int dist = abs(shooter.fila - target.fila) + abs(shooter.col - target.col);
+        if (rangoEnt > 0 && dist > rangoEnt) {
+            std::cout << "Arma " << a->nombre << " fuera de rango (dist " << dist << " rango " << rangoEnt << ").\n";
+            continue;
+        }
+
+        if (!lineaDespejada(mapa, shooter.fila, shooter.col, target.fila, target.col)) {
+            std::cout << "Disparo de " << a->nombre << " bloqueado por estructura.\n";
+            continue;
+        }
+
+        int impactos = 0;
+        for (int t = 0; t < tiros; ++t) {
+            if (a->impacto == 0) { impactos++; continue; }
+            int roll = tiradaD6(rng);
+            if (roll >= a->impacto) impactos++;
+        }
+        if (impactos == 0) {
+            std::cout << "Arma " << a->nombre << " no consigui impactos (" << tiros << " tiros -> 0 aciertos).\n";
+            continue;
+        }
+
+        int fuerza = a->fuerza;
+        int umbral = umbralParaHervir(fuerza, resistencia);
+        int heridas = 0;
+        for (int i = 0; i < impactos; ++i) {
+            int r = tiradaD6(rng);
+            if (r >= umbral) heridas++;
+        }
+        if (heridas == 0) {
+            std::cout << "Arma " << a->nombre << " impact " << impactos << " pero no consigui herir.\n";
+            continue;
+        }
+
+        int salvados = 0;
+        int salvacion = target.salvacion;
+        if (salvacion < 1) salvacion = 7;
+        for (int i = 0; i < heridas; ++i) {
+            int r = tiradaD6(rng);
+            if (r >= salvacion) salvados++;
+        }
+        int heridasNoSalvadas = heridas - salvados;
+        if (heridasNoSalvadas <= 0) {
+            std::cout << "El objetivo salv " << salvados << " heridas de " << heridas << ".\n";
+            continue;
+        }
+
+        int danioTotal = 0;
+        for (int i = 0; i < heridasNoSalvadas; ++i) {
+            if (a->dano.size() >= 2 && (a->dano[0] == 'D' || a->dano[0] == 'd')) {
+                int n = 6;
+                try { n = std::stoi(a->dano.substr(1)); } catch(...) { n = 6; }
+                std::uniform_int_distribution<int> d(1,n);
+                danioTotal += d(rng);
+            } else {
+                try { danioTotal += std::stoi(a->dano); } catch(...) { danioTotal += 1; }
+            }
+        }
+
+        aplicarDanioAUnidad(target, danioTotal);
+        if (target.tropasActuales <= 0 && target.hp <= 0) {
+            cout << ">>> La unidad " << target.codigo << " ha muerto y es eliminada del campo.\n";
+            quitarUnidadDelMapa(mapa, target);
+            target.desplegada = false;
+        }
+        std::cout << "Arma " << a->nombre << ": tiros " << tiros << " -> impactos " << impactos
+             << " -> heridas " << heridas << " (salvadas " << salvados << ") -> dano " << danioTotal << ".\n";
+    }
+}
+void faseDisparo(
+    std::vector<std::vector<std::string>>& mapa,
+    std::vector<UnidadInst>& instancias,
+    const std::vector<Unidad>& catalogo,
+    const std::vector<Arma>& armasDisponibles,
+    const std::vector<ArmaCuerpo>& armasCDisponibles,
+    bool jugadorTurno
+) {
+    std::random_device rd;
+    std::mt19937 rng(rd());
+
+    if (jugadorTurno) {
+        std::cout << "=== FASE DE DISPARO (JUGADOR) ===\n";
+        std::vector<int> idxs;
+        for (size_t i=0;i<instancias.size();++i) {
+            if (instancias[i].desplegada && !esUnidadIA(instancias[i]) && instancias[i].tropasActuales>0) idxs.push_back((int)i);
+        }
+        if (idxs.empty()) { std::cout << "No tienes unidades desplegadas que puedan disparar.\n"; return; }
+
+        std::cout << "Unidades disponibles para disparar:\n";
+        for (int id : idxs) {
+            std::cout << instancias[id].codigo << " - " << instancias[id].nombre
+                 << " Pos(" << instancias[id].fila << "," << instancias[id].col << ") "
+                 << " T:" << instancias[id].tropasActuales << "\n";
+        }
+
+        while (true) {
+            std::cout << "Ingrese el codigo de la unidad que disparara (o 0 para terminar fase): ";
+            std::string code; std::cin >> code;
+            if (code == "0") break;
+            int sidx = buscarInstanciaPorCodigo(instancias, code);
+            if (sidx == -1) { std::cout << "Codigo no encontrado.\n"; continue; }
+            if (esUnidadIA(instancias[sidx])) { std::cout << "No es una unidad del jugador.\n"; continue; }
+            if (!instancias[sidx].desplegada) { std::cout << "Unidad no desplegada.\n"; continue; }
+            if (instancias[sidx].tropasActuales <= 0) { std::cout << "Unidad sin tropas.\n"; continue; }
+
+            std::cout << "Objetivos enemigos disponibles:\n";
+            std::vector<int> enem;
+            for (size_t i=0;i<instancias.size();++i) {
+                if (instancias[i].desplegada && esUnidadIA(instancias[i]) && instancias[i].tropasActuales>0) {
+                    std::cout << instancias[i].codigo << " - " << instancias[i].nombre << " Pos("<<instancias[i].fila<<","<<instancias[i].col<<") T:"<<instancias[i].tropasActuales << "\n";
+                    enem.push_back((int)i);
+                }
+            }
+            if (enem.empty()) { std::cout << "No hay enemigos desplegados.\n"; break; }
+            std::cout << "Ingresa codigo objetivo: "; std::string targetCode; std::cin >> targetCode;
+            int tidx = buscarInstanciaPorCodigo(instancias, targetCode);
+            if (tidx == -1) { std::cout << "Objetivo no encontrado.\n"; continue; }
+            if (!esUnidadIA(instancias[tidx])) { std::cout << "Ese objetivo no es enemigo.\n"; continue; }
+            ejecutarDisparosDeUnidad(mapa, instancias[sidx], instancias[tidx], catalogo, armasDisponibles, rng);
+        }
+    } else {
+        std::cout << "=== FASE DE DISPARO (IA) ===\n";
+        std::vector<int> idxIA;
+        std::vector<int> idxPlayer;
+        for (size_t i=0;i<instancias.size();++i) {
+            if (!instancias[i].desplegada) continue;
+            if (esUnidadIA(instancias[i]) && instancias[i].tropasActuales>0) idxIA.push_back((int)i);
+            if (!esUnidadIA(instancias[i]) && instancias[i].tropasActuales>0) idxPlayer.push_back((int)i);
+        }
+        for (int id : idxIA) {
+            int best = -1, bestd = INT_MAX;
+            for (int pid : idxPlayer) {
+                int d = abs(instancias[id].fila - instancias[pid].fila) + abs(instancias[id].col - instancias[pid].col);
+                if (d < bestd) { bestd = d; best = pid; }
+            }
+            if (best != -1) {
+                ejecutarDisparosDeUnidad(mapa, instancias[id], instancias[best], catalogo, armasDisponibles, rng);
+            }
+        }
+    }
+}
+
+void faseCuerpoACuerpo(
+    std::vector<std::vector<std::string>>& mapa,
+    std::vector<UnidadInst>& instancias,
+    const std::vector<Unidad>& catalogo,
+    const std::vector<ArmaCuerpo>& armasCDisponibles,
+    bool jugadorTurno
+) {
+    std::random_device rd;
+    std::mt19937 rng(rd());
+
+    std::vector<std::pair<int,int>> combates;
+    for (size_t i=0;i<instancias.size();++i) {
+        for (size_t j=0;j<instancias.size();++j) {
+            if (i==j) continue;
+            if (!instancias[i].desplegada || !instancias[j].desplegada) continue;
+            if (instancias[i].tropasActuales<=0 || instancias[j].tropasActuales<=0) continue;
+            if (esUnidadIA(instancias[i]) == esUnidadIA(instancias[j])) continue;
+            int d = abs(instancias[i].fila - instancias[j].fila) + abs(instancias[i].col - instancias[j].col);
+            if (d <= 1) {
+                if (i < j) combates.emplace_back((int)i,(int)j);
+            }
+        }
+    }
+    if (combates.empty()) { std::cout << "No hay combates cuerpo a cuerpo cercanos.\n"; return; }
+
+    for (auto &c : combates) {
+        int a = c.first, b = c.second;
+        std::cout << "Cuerpo a cuerpo entre " << instancias[a].codigo << " y " << instancias[b].codigo << "\n";
+
+        std::string armasA = "-"; std::string armasB = "-";
+        for (const auto &u_cat : catalogo) {
+            if (u_cat.id == instancias[a].idBase) armasA = u_cat.armasCuerpo;
+            if (u_cat.id == instancias[b].idBase) armasB = u_cat.armasCuerpo;
+        }
+        auto vecA = parseArmasCadenaToVec(armasA);
+        auto vecB = parseArmasCadenaToVec(armasB);
+
+        auto procesarAtaques = [&](int atacanteIdx, int defensorIdx, const std::vector<std::pair<int,int>>& vecArmas)->void {
+            UnidadInst &atk = instancias[atacanteIdx];
+            UnidadInst &def = instancias[defensorIdx];
+            int numAtacantes = std::max(1, atk.tropasActuales);
+            int totalGolpes = 0;
+            if (vecArmas.empty()) totalGolpes = numAtacantes; else {
+                for (auto &p : vecArmas) {
+                    const ArmaCuerpo* ac = armaCuerpoPorId(armasCDisponibles, p.first);
+                    if (!ac) continue;
+                    int nmodelos = (p.second>0? p.second : atk.tropasActuales);
+                    totalGolpes += nmodelos * ac->golpes;
+                }
+            }
+            if (totalGolpes <= 0) return;
+            int impactos = 0;
+            for (int g=0; g<totalGolpes; ++g) {
+                int roll = tiradaD6(rng);
+                if (roll >= 4) impactos++;
+            }
+            if (impactos==0) return;
+            int fuerza = 1;
+            if (!vecArmas.empty()) {
+                int sumaF = 0; int cuentas = 0;
+                for (auto &p : vecArmas) {
+                    const ArmaCuerpo* ac = armaCuerpoPorId(armasCDisponibles, p.first);
+                    if (!ac) continue;
+                    sumaF += ac->fuerza;
+                    cuentas++;
+                }
+                if (cuentas>0) fuerza = std::max(1, sumaF / cuentas);
+            }
+            int resistencia = 1;
+            for (const auto &u_cat : catalogo) if (u_cat.id == def.idBase) { resistencia = u_cat.impacto; break; }
+            int umbral = umbralParaHervir(fuerza, resistencia);
+            int heridas = 0;
+            for (int i=0;i<impactos;++i) {
+                int r = tiradaD6(rng);
+                if (r >= umbral) heridas++;
+            }
+            if (heridas==0) return;
+            int salvacion = 7;
+            for (const auto &u_cat : catalogo) if (u_cat.id == def.idBase) { salvacion = u_cat.salvacion; break; }
+            int salvados = 0;
+            for (int i=0;i<heridas;++i) {
+                int r = tiradaD6(rng);
+                if (r >= salvacion) salvados++;
+            }
+            int noSalv = heridas - salvados;
+            if (noSalv>0) {
+                aplicarDanioAUnidad(def, noSalv);
+                std::cout << atk.codigo << " hizo " << noSalv << " heridas a " << def.codigo << ".\n";
+            }
+        };
+
+        procesarAtaques(a,b,vecA);
+        procesarAtaques(b,a,vecB);
+    }
+}
+void modoBatalla(vector<vector<string>>& mapa, vector<UnidadInst>& instancias, const vector<Unidad>& catalogo, const vector<Arma>& armas, const vector<ArmaCuerpo>& armasC) {
+    cout << "=== MODO BATALLA ===\n";
+
+    int turno = 0;
+
+    while (true) {
+
+        mostrarMapa(mapa);
+
+        mostrarPanelEstado(instancias);
+
+        cout << "\nComandos de BATALLA (Turno " << (turno == 0 ? "JUGADOR" : "IA") << "):\n";
+        if (turno == 0) {
+            cout << "1) Entrar a Modo Despliegue (colocar unidades) [Jugador]\n";
+            cout << "2) Entrar a Modo Movimiento (mover unidades desplegadas) [Jugador]\n";
+            cout << "3) Mostrar mapa (solo)\n";
+            cout << "4) Mostrar panel estado (solo)\n";
+            cout << "5) Salir de BATALLA\n";
+            cout << "6) Terminar Turno (pasar a IA)\n";
+            cout << "7) Iniciar Fase de Disparo (Jugador)\n";
+            cout << "8) Iniciar Combate Cuerpo a Cuerpo (resolver combates adyacentes)\n";
+        } else {
+            cout << "1) (turno IA) - no disponible\n";
+            cout << "2) (turno IA) - no disponible\n";
+            cout << "3) Mostrar mapa (solo)\n";
+            cout << "4) Mostrar panel estado (solo)\n";
+            cout << "5) Salir de BATALLA\n";
+            cout << "6) (turno IA) - Ejecutar movimiento IA ahora\n";
+            cout << "7) (turno IA) - Ejecutar fase de disparo IA\n";
+            cout << "8) (turno IA) - Ejecutar combate cuerpo a cuerpo IA\n";
+        }
+
+        cout << "Elige: ";
+        int op; cin >> op;
+
+        if (turno == 0) {
+            if (op == 1) {
+                modoDespliegue(mapa, instancias);
+            } else if (op == 2) {
+                modoMovimiento(mapa, instancias);
+            } else if (op == 3) {
+                mostrarMapa(mapa);
+            } else if (op == 4) {
+                mostrarPanelEstado(instancias);
+            } else if (op == 5) {
+                cout << "Saliendo de BATALLA.\n";
+                break;
+            } else if (op == 6) {
+                cout << "Turno del jugador finalizado. Ahora mueve la IA...\n";
+                moverIA(mapa, instancias);
+                cout << "IA ha movido sus unidades.\n";
+                turno = 1;
+            } else if (op == 7) {
+                faseDisparo(mapa, instancias, catalogo, armas, armasC, true);
+            } else if (op == 8) {
+                faseCuerpoACuerpo(mapa, instancias, catalogo, armasC, true);
+            } else {
+                cout << "Opcion invalida.\n";
+            }
+        } else {
+            if (op == 3) {
+                mostrarMapa(mapa);
+            } else if (op == 4) {
+                mostrarPanelEstado(instancias);
+            } else if (op == 5) {
+                cout << "Saliendo de BATALLA.\n";
+                break;
+            } else if (op == 6) {
+                cout << "Ejecutando movimiento de la IA...\n";
+                moverIA(mapa, instancias);
+                cout << "IA ha movido. Ahora es el turno del jugador.\n";
+                turno = 0;
+            } else if (op == 7) {
+                cout << "IA ejecutando fase de disparo...\n";
+                faseDisparo(mapa, instancias, catalogo, armas, armasC, false);
+                cout << "IA dispar.\n";
+            } else if (op == 8) {
+                cout << "IA resolviendo combates cuerpo a cuerpo...\n";
+                faseCuerpoACuerpo(mapa, instancias, catalogo, armasC, false);
+            } else {
+                cout << "Opcion invalida o no disponible en turno IA.\n";
+            }
+        }
+    }
+}
 int main() {
     vector<Usuario> usuarios;
     cargarUsuarios(usuarios);
@@ -1460,12 +1843,12 @@ int main() {
                     if (puntosJugador <= 0) {
                         cout << "Tu ejercito no tiene puntos (esta vacio). No se generara IA.\n";
 
-                        modoBatalla(mapa, instancias);
+                        modoBatalla(mapa, instancias, catalogo, armas, armasC);
                     } else {
                         vector<int> ejercitoIA = generarEjercitoIA(catalogo, fac, puntosJugador);
                         if (ejercitoIA.empty()) {
                             cout << "No se pudo generar un ejercito IA para la faccion " << fac << ".\n";
-                            modoBatalla(mapa, instancias);
+                            modoBatalla(mapa, instancias, catalogo, armas, armasC);
                         } else {
                             guardarEjercitoIA(fac, ejercitoIA, catalogo);
                             vector<UnidadInst> instanciasIA = generarInstanciasDesdeEjercito(ejercitoIA, catalogo);
@@ -1473,7 +1856,7 @@ int main() {
                             desplegarEjercitoIAEnMapa(mapa, instanciasIA);
                             for (auto &ui : instanciasIA) instancias.push_back(ui);
                             cout << "Ejercito IA de faccion " << fac << " creado y desplegado en la parte superior del mapa.\n";
-                            modoBatalla(mapa, instancias);
+                            modoBatalla(mapa, instancias, catalogo, armas, armasC);
                             for (const auto &ui : instanciasIA) {
                                 quitarUnidadDelMapa(mapa, ui);
                             }
