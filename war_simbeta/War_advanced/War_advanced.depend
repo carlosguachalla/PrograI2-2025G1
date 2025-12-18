@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1766072909 source:e:\create an opportunity\war_sim\war_simbeta\main.cpp
+1766067288 source:e:\create an opportunity\war_sim\war_simbeta\war_advanced\main.cpp
 	<iostream>
 	<fstream>
 	<string>
