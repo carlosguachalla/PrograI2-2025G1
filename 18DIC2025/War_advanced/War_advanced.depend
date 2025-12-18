@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1766067288 source:e:\create an opportunity\war_sim\war_simbeta\war_advanced\main.cpp
+	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	<algorithm>
+	<cstdio>
+	<sstream>
+	<random>
+	<cctype>
+	<unordered_map>
+	<cmath>
+	<queue>
+	<climits>
+	<random>
+	<climits>
+	<iomanip>
+
